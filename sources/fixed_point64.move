@@ -82,7 +82,7 @@ module fixed_point64::fixed_point64 {
 
     /// Get integer "one" in FixedPoint64
     public fun one(): FixedPoint64 {
-        FixedPoint64{ v: 1 << 64 }
+        FixedPoint64{ v: TWO_POW_64 }
     }
     
     /// Get integer "zero" in FixedPoint64

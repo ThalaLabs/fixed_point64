@@ -144,5 +144,12 @@ module fixed_point64::log_exp_math_tests {
         let y = fixed_point64::fraction(2, 3);
         let result = log_exp_math::pow(x, y);
         assert!(fixed_point64::to_u128(result) == 8868269569660157952, 1); // (1/3)^(2/3) = 0.4807498568
+
+        let epsilon = fixed_point64::fraction(1, 1000000000);
+        let result = log_exp_math::pow_up(x, y);
+        assert!(fixed_point64::to_u128(result) == 8868269569660157952 + fixed_point64::to_u128(epsilon), 1);
+
+        let result = log_exp_math::pow_down(x, y);
+        assert!(fixed_point64::to_u128(result) == 8868269569660157952 - fixed_point64::to_u128(epsilon), 1);
     }
 }

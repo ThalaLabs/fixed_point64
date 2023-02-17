@@ -31,6 +31,8 @@ module fixed_point64::log_exp_math {
 
     const LOG_2_E_INV_RAW: u128 = 12786308645977587712; // 1.0 / log_2(e)
 
+    const TEN_EXP_MINUS_9: u128 = 18446744073; // fixed_point64::fraction(1, 1000000000)
+
     const PRECISION: u8 = 64; // number of bits in the mantissa
 
     // code reference: https://github.com/dmoulding/log2fix/blob/master/log2fix.c
@@ -176,18 +178,70 @@ module fixed_point64::log_exp_math {
     }
 
     public fun pow(x: FixedPoint64, y: FixedPoint64): FixedPoint64 {
-        let result;
-        if (fixed_point64::to_u128(y) == 0) {
-            // We solve the 0^0 indetermination by making it equal to one.
-            result = fixed_point64::one();
-        } else if (fixed_point64::to_u128(x) == 0) {
-            result = fixed_point64::zero();
+        let (success, result) = try_simple_pow(x, y);
+        if (success) {
+            result
         } else {
             // x^y = exp(y * ln(x))
             let (sign, ln_x) = ln(x);
             let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
-            result = exp(sign, y_times_ln_x);
-        };
-        result
+            exp(sign, y_times_ln_x)
+        }
+    }
+    
+    /// pow_up adds 10^-9 to the result of pow if Taylor series is used
+    /// so that the result is always greater than or equal to the true value
+    public fun pow_up(x: FixedPoint64, y: FixedPoint64): FixedPoint64 {
+        let (success, result) = try_simple_pow(x, y);
+        if (success) {
+            result
+        } else {
+            // x^y = exp(y * ln(x))
+            let (sign, ln_x) = ln(x);
+            let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
+            fixed_point64::add_fp(exp(sign, y_times_ln_x), fixed_point64::from_u128(TEN_EXP_MINUS_9))
+        }
+    }
+    
+    /// pow_down substracts 10^-9 from the result of pow if Taylor series is used and the result is greater than 10^-9
+    /// so that the result is always smaller than or equal to the true value
+    public fun pow_down(x: FixedPoint64, y: FixedPoint64): FixedPoint64 {
+        let (success, result) = try_simple_pow(x, y);
+        if (success) {
+            result
+        } else {
+            // x^y = exp(y * ln(x))
+            let (sign, ln_x) = ln(x);
+            let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
+            let result = exp(sign, y_times_ln_x);
+            let epsilon = fixed_point64::from_u128(TEN_EXP_MINUS_9);
+            if (fixed_point64::gt(&result, &epsilon)) {
+                fixed_point64::sub_fp(result, epsilon)
+            } else {
+                fixed_point64::zero()
+            }
+        }
+    }
+
+    /// try_simple_pow returns the result of pow if it can be computed using simple rules
+    /// e.g. x^0 = 1, x^1 = x, x^2 = x * x, x^4 = x^2 * x^2
+    /// returns (true, value) if the result can be computed
+    /// returns (false, 0) if the result cannot be computed
+    fun try_simple_pow(x: FixedPoint64, y: FixedPoint64): (bool, FixedPoint64) {
+        if (fixed_point64::to_u128(y) == 0) {
+            // We solve the 0^0 indetermination by making it equal to one.
+            (true, fixed_point64::one())
+        } else if (fixed_point64::to_u128(x) == 0) {
+            (true, fixed_point64::zero())
+        } else if (fixed_point64::to_u128(y) == ONE_RAW) {
+            (true, x)
+        } else if (fixed_point64::to_u128(y) == TWO_RAW) {
+            (true, fixed_point64::mul_fp(x, x))
+        } else if (fixed_point64::to_u128(y) == TWO_POW_2_RAW) {
+            let x_squared = fixed_point64::mul_fp(x, x);
+            (true, fixed_point64::mul_fp(x_squared, x_squared))
+        } else {
+            (false, fixed_point64::zero())
+        }
     }
 }
