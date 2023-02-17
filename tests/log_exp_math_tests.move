@@ -159,6 +159,9 @@ module fixed_point64::log_exp_math_tests {
         let max_u64_u128: u128 = 1 << 64 - 1;
         let max_u64: u64 = (max_u64_u128 as u64);
         let max_u64_fp = fixed_point64::encode(max_u64);
+
+        // actual value of (MAX_U64 ^ (1/8)) ^ 8 is MAX_U64
+        // test pow_up and pow_down are working properly
         let a = fixed_point64::fraction(1, 8);
         let b = fixed_point64::encode(8);
         let result_up = log_exp_math::pow_up(log_exp_math::pow_up(max_u64_fp, a), b);
