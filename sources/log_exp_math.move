@@ -31,7 +31,8 @@ module fixed_point64::log_exp_math {
 
     const LOG_2_E_INV_RAW: u128 = 12786308645977587712; // 1.0 / log_2(e)
 
-    const TEN_EXP_MINUS_9: u128 = 18446744073; // fixed_point64::fraction(1, 1000000000)
+    const ONE_PLUS_TEN_EXP_MINUS_9: u128 = 18446744092156295689; // fixed_point64::fraction(1000000001, 1000000000)
+    const ONE_MINUS_TEN_EXP_MINUS_9: u128 = 18446744055262807542; // fixed_point64::fraction(999999999, 1000000000)
 
     const PRECISION: u8 = 64; // number of bits in the mantissa
 
@@ -189,8 +190,8 @@ module fixed_point64::log_exp_math {
         }
     }
     
-    /// pow_up adds 10^-9 to the result of pow if Taylor series is used
-    /// so that the result is always greater than or equal to the true value
+    /// pow_up multiplies pow result by (1 + 10^-9) if numerical approximation is used in pow
+    /// based on experiments, the result is always greater than or equal to the true value
     public fun pow_up(x: FixedPoint64, y: FixedPoint64): FixedPoint64 {
         let (success, result) = try_simple_pow(x, y);
         if (success) {
@@ -199,12 +200,12 @@ module fixed_point64::log_exp_math {
             // x^y = exp(y * ln(x))
             let (sign, ln_x) = ln(x);
             let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
-            fixed_point64::add_fp(exp(sign, y_times_ln_x), fixed_point64::from_u128(TEN_EXP_MINUS_9))
+            fixed_point64::mul_fp(exp(sign, y_times_ln_x), fixed_point64::from_u128(ONE_PLUS_TEN_EXP_MINUS_9))
         }
     }
     
-    /// pow_down substracts 10^-9 from the result of pow if Taylor series is used and the result is greater than 10^-9
-    /// so that the result is always smaller than or equal to the true value
+    /// pow_down multiplies pow result by (1 - 10^-9) if numerical approximation is used in pow
+    /// based on experiments, the result is always smaller than or equal to the true value
     public fun pow_down(x: FixedPoint64, y: FixedPoint64): FixedPoint64 {
         let (success, result) = try_simple_pow(x, y);
         if (success) {
@@ -213,13 +214,7 @@ module fixed_point64::log_exp_math {
             // x^y = exp(y * ln(x))
             let (sign, ln_x) = ln(x);
             let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
-            let result = exp(sign, y_times_ln_x);
-            let epsilon = fixed_point64::from_u128(TEN_EXP_MINUS_9);
-            if (fixed_point64::gt(&result, &epsilon)) {
-                fixed_point64::sub_fp(result, epsilon)
-            } else {
-                fixed_point64::zero()
-            }
+            fixed_point64::mul_fp(exp(sign, y_times_ln_x), fixed_point64::from_u128(ONE_MINUS_TEN_EXP_MINUS_9))
         }
     }
 

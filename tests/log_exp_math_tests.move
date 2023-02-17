@@ -145,11 +145,26 @@ module fixed_point64::log_exp_math_tests {
         let result = log_exp_math::pow(x, y);
         assert!(fixed_point64::to_u128(result) == 8868269569660157952, 1); // (1/3)^(2/3) = 0.4807498568
 
-        let epsilon = fixed_point64::fraction(1, 1000000000);
+        let scale_up = fixed_point64::fraction(1000000001, 1000000000);
         let result = log_exp_math::pow_up(x, y);
-        assert!(fixed_point64::to_u128(result) == 8868269569660157952 + fixed_point64::to_u128(epsilon), 1);
+        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269569660157952), scale_up)), 1);
 
         let result = log_exp_math::pow_down(x, y);
-        assert!(fixed_point64::to_u128(result) == 8868269569660157952 - fixed_point64::to_u128(epsilon), 1);
+        let scale_down = fixed_point64::fraction(999999999, 1000000000);
+        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269569660157952), scale_down)), 1);
+    }
+
+    #[test]
+    fun test_pow_large_number() {
+        let max_u64_u128: u128 = 1 << 64 - 1;
+        let max_u64: u64 = (max_u64_u128 as u64);
+        let max_u64_fp = fixed_point64::encode(max_u64);
+        let a = fixed_point64::fraction(1, 8);
+        let b = fixed_point64::encode(8);
+        let result_up = log_exp_math::pow_up(log_exp_math::pow_up(max_u64_fp, a), b);
+        let result_down = log_exp_math::pow_down(log_exp_math::pow_down(max_u64_fp, a), b);
+
+        assert!(fixed_point64::gte(&result_up, &max_u64_fp), 1);
+        assert!(fixed_point64::lte(&result_down, &max_u64_fp), 1);
     }
 }
