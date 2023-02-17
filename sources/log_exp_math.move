@@ -183,10 +183,7 @@ module fixed_point64::log_exp_math {
         if (success) {
             result
         } else {
-            // x^y = exp(y * ln(x))
-            let (sign, ln_x) = ln(x);
-            let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
-            exp(sign, y_times_ln_x)
+            pow_internal(x, y)
         }
     }
     
@@ -197,10 +194,7 @@ module fixed_point64::log_exp_math {
         if (success) {
             result
         } else {
-            // x^y = exp(y * ln(x))
-            let (sign, ln_x) = ln(x);
-            let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
-            fixed_point64::mul_fp(exp(sign, y_times_ln_x), fixed_point64::from_u128(ONE_PLUS_TEN_EXP_MINUS_9))
+            fixed_point64::mul_fp(pow_internal(x, y), fixed_point64::from_u128(ONE_PLUS_TEN_EXP_MINUS_9))
         }
     }
     
@@ -211,10 +205,7 @@ module fixed_point64::log_exp_math {
         if (success) {
             result
         } else {
-            // x^y = exp(y * ln(x))
-            let (sign, ln_x) = ln(x);
-            let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
-            fixed_point64::mul_fp(exp(sign, y_times_ln_x), fixed_point64::from_u128(ONE_MINUS_TEN_EXP_MINUS_9))
+            fixed_point64::mul_fp(pow_internal(x, y), fixed_point64::from_u128(ONE_MINUS_TEN_EXP_MINUS_9))
         }
     }
 
@@ -238,5 +229,13 @@ module fixed_point64::log_exp_math {
         } else {
             (false, fixed_point64::zero())
         }
+    }
+
+    // formula: x^y = exp(y * ln(x))
+    // this function does not check validity of x and y. Caller should ensure handling of special cases such as x = 0 or y = 0
+    fun pow_internal(x: FixedPoint64, y: FixedPoint64): FixedPoint64 {
+        let (sign, ln_x) = ln(x);
+        let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
+        exp(sign, y_times_ln_x)
     }
 }
