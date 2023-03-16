@@ -3,7 +3,10 @@ name = "FixedPoint64"
 version = "0.1.0"
 
 [addresses]
-fixed_point64 = "94f0e00a99685c74067f7541b171bf2a4bd7d859609adce17980a7c924b135c8"
+fixed_point64 = "e7d5b9410c8f1e172f278a22cbe4e619cba0766e66e06b54f576f9637e10fef2"
+
+# Testnet Address
+# fixed_point64 = "94f0e00a99685c74067f7541b171bf2a4bd7d859609adce17980a7c924b135c8"
 
 [dev-dependencies.MoveStdlib]
 git = "https://github.com/aptos-labs/aptos-core.git"
