@@ -1,9 +1,9 @@
 [package]
 name = "FixedPoint64"
-version = "0.1.0"
+version = "1.0.0"
 
 [addresses]
-fixed_point64 = "e7d5b9410c8f1e172f278a22cbe4e619cba0766e66e06b54f576f9637e10fef2"
+fixed_point64 = "4dcae85fc5559071906cd5c76b7420fcbb4b0a92f00ab40ffc394aadbbff5ee9"
 
 # Testnet Address
 # fixed_point64 = "94f0e00a99685c74067f7541b171bf2a4bd7d859609adce17980a7c924b135c8"
