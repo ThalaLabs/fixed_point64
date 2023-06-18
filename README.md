@@ -39,7 +39,7 @@ Add to `Move.toml`:
 
 ```toml
 [dependencies.FixedPoint64]
-git = "https://github.com/ThalaLabs/FixedPoint64.git"
+git = "https://github.com/ThalaLabs/fixed_point64.git"
 rev = "<commit hash>"
 ```
 
