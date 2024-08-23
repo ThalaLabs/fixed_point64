@@ -8,8 +8,7 @@ fixed_point64 = "4dcae85fc5559071906cd5c76b7420fcbb4b0a92f00ab40ffc394aadbbff5ee
 # Testnet Address
 # fixed_point64 = "94f0e00a99685c74067f7541b171bf2a4bd7d859609adce17980a7c924b135c8"
 
-[dev-dependencies.MoveStdlib]
-git = "https://github.com/aptos-labs/aptos-core.git"
-rev = "mainnet"
-subdir = "aptos-move/framework/move-stdlib"
-addr_subst = { std = "0x1" }
+[dependencies.InitiaStdlib]
+git = 'https://github.com/initia-labs/move-natives.git'
+rev = 'main'
+subdir = 'initia_stdlib'
