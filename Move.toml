@@ -3,7 +3,7 @@ name = "FixedPoint64"
 version = "1.0.0"
 
 [addresses]
-fixed_point64 = "4dcae85fc5559071906cd5c76b7420fcbb4b0a92f00ab40ffc394aadbbff5ee9"
+fixed_point64 = "0x84A1C74DD12B1D7F07E5509550DF918BD5593100"
 
 # Testnet Address
 # fixed_point64 = "94f0e00a99685c74067f7541b171bf2a4bd7d859609adce17980a7c924b135c8"
