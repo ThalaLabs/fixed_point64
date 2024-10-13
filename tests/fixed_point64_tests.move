@@ -148,7 +148,7 @@ module fixed_point64::fixed_point64_tests {
     #[expected_failure]
     fun test_fail_overflow_add() {
         let a = fixed_point64::encode(MAX_U64);
-        fixed_point64::add(a, MAX_U64);
+        fixed_point64::add(a, (MAX_U64 as u128));
     }
 
     #[test]

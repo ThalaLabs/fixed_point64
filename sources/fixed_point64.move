@@ -96,33 +96,33 @@ module fixed_point64::fixed_point64 {
     }
 
     /// Multiply a `FixedPoint64` by a `u64`, returning a `FixedPoint64`
-    public fun mul(fp: FixedPoint64, y: u64): FixedPoint64 {
+    public fun mul(fp: FixedPoint64, y: u128): FixedPoint64 {
         // vm would direct abort when overflow occured
-        let v = fp.v * (y as u128);
+        let v = fp.v * y;
 
         FixedPoint64{ v }
     }
 
     /// Divide a `FixedPoint64` by a `u64`, returning a `FixedPoint64`.
-    public fun div(fp: FixedPoint64, y: u64): FixedPoint64 {
+    public fun div(fp: FixedPoint64, y: u128): FixedPoint64 {
         assert!(y != 0, ERR_DIVIDE_BY_ZERO);
 
-        let v = fp.v / (y as u128);
+        let v = fp.v / y;
         FixedPoint64{ v }
     }
 
     /// Add a `FixedPoint64` and a `u64`, returning a `FixedPoint64`
-    public fun add(fp: FixedPoint64, y: u64): FixedPoint64 {
+    public fun add(fp: FixedPoint64, y: u128): FixedPoint64 {
         // vm would direct abort when overflow occured
-        let v = fp.v + ((y as u128) << 64);
+        let v = fp.v + (y << 64);
 
         FixedPoint64{ v }
     }
 
     /// Subtract `FixedPoint64` by a `u64`, returning a `FixedPoint64`
-    public fun sub(fp: FixedPoint64, y: u64): FixedPoint64 {
+    public fun sub(fp: FixedPoint64, y: u128): FixedPoint64 {
         // vm would direct abort when underflow occured
-        let v = fp.v - ((y as u128) << 64);
+        let v = fp.v - (y << 64);
 
         FixedPoint64{ v }
     }
@@ -197,11 +197,11 @@ module fixed_point64::fixed_point64 {
     }
 
     /// Returns a `FixedPoint64` which represents the ratio of the numerator to the denominator.
-    public fun fraction(numerator: u64, denominator: u64): FixedPoint64 {
+    public fun fraction(numerator: u128, denominator: u128): FixedPoint64 {
         assert!(denominator != 0, ERR_DIVIDE_BY_ZERO);
 
-        let r = (numerator as u128) << 64;
-        let v = r / (denominator as u128);
+        let r = numerator << 64;
+        let v = r / denominator;
 
         FixedPoint64{ v }
     }
