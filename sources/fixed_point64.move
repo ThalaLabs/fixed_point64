@@ -11,6 +11,9 @@ module fixed_point64::fixed_point64 {
     /// When divide result is too large that will cause overflow
     const ERR_DIVIDE_RESULT_TOO_LARGE: u64 = 2;
 
+    /// When multiply result is too large that it will cause overflow
+    const ERR_MULTIPLY_RESULT_TOO_LARGE: u64 = 3;
+
     /// 2^64 == 1 << 64
     const TWO_POW_64: u128 = 1 << 64;
 
@@ -25,6 +28,8 @@ module fixed_point64::fixed_point64 {
 
     /// When a is greater than b.
     const GREATER_THAN: u8 = 2;
+
+    const MAX_U128: u128 = 340282366920938463463374607431768211455;
 
     /// The resource to store `FixedPoint64`.
     struct FixedPoint64 has copy, store, drop {
@@ -147,27 +152,46 @@ module fixed_point64::fixed_point64 {
     /// Multiply a `FixedPoint64` by a `FixedPoint64`, returning a `FixedPoint64`
     /// To avoid overflow, the result must be smaller than MAX_U64
     public fun mul_fp(a: FixedPoint64, b: FixedPoint64): FixedPoint64 {
-        let a_shift = a.v >> 32;
-        let b_shift = b.v >> 32;
-        let a_low_32 = a.v - a_shift * TWO_POW_32;
-        let b_low_32 = b.v - b_shift * TWO_POW_32;
-        // vm would direct abort when overflow occured
-        let v = a_shift * b_shift + ((a_shift * b_low_32) >> 32) + ((b_shift * a_low_32) >> 32);
+        // Cast to u256 to avoid overflow during multiplication
+        let a_u256 = (a.v as u256);
+        let b_u256 = (b.v as u256);
+
+        // Perform full precision multiplication
+        let result_u256 = a_u256 * b_u256;
+
+        // Adjust the scale: divide by 2^64 to bring back to FixedPoint64 scale
+        let scaled_result = result_u256 >> 64;
+
+        // Ensure the result fits into u128
+        assert!(scaled_result <= (MAX_U128 as u256), ERR_MULTIPLY_RESULT_TOO_LARGE);
+
+        let v = (scaled_result as u128);
 
         FixedPoint64{ v }
     }
-
     
     /// Divide a `FixedPoint64` by a `FixedPoint64`, returning a `FixedPoint64`.
-    /// To avoid overflow, the result must be smaller than MAX_U64
+    /// To avoid overflow, the result must be smaller than MAX_U128
     public fun div_fp(a: FixedPoint64, b: FixedPoint64): FixedPoint64 {
-        let b_shift = b.v >> 32;
-        assert!(b_shift != 0, ERR_DIVISOR_TOO_SMALL);
-        
-        let result = a.v / b_shift;
-        // make sure result << 32 won't overflow
-        assert!(result >> 96 == 0, ERR_DIVIDE_RESULT_TOO_LARGE);
-        let v = result << 32;
+        // Ensure denominator is not zero
+        assert!(b.v != 0, ERR_DIVISOR_TOO_SMALL);
+
+        // Cast a and b to u256 for higher precision
+        let a_u256 = (a.v as u256);
+        let b_u256 = (b.v as u256);
+
+        // Scale the numerator by 2^64 to preserve precision
+        let scaled_a = a_u256 << 64;
+
+        assert!(scaled_a >= 0, ERR_DIVIDE_RESULT_TOO_LARGE);
+
+        // Perform the division with full precision
+        let result_u256 = scaled_a / b_u256;
+
+        // Ensure the result fits into u128
+        assert!(result_u256 <= (MAX_U128 as u256), ERR_DIVIDE_RESULT_TOO_LARGE);
+
+        let v = (result_u256 as u128);
 
         FixedPoint64{ v }
     }
