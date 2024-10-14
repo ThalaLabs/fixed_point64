@@ -1,6 +1,7 @@
 [package]
 name = "FixedPoint64"
 version = "1.0.0"
+upgrade_policy = "immutable"
 
 [addresses]
 fixed_point64 = "4dcae85fc5559071906cd5c76b7420fcbb4b0a92f00ab40ffc394aadbbff5ee9"
