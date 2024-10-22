@@ -4,10 +4,7 @@ version = "1.0.0"
 upgrade_policy = "immutable"
 
 [addresses]
-fixed_point64 = "4dcae85fc5559071906cd5c76b7420fcbb4b0a92f00ab40ffc394aadbbff5ee9"
-
-# Testnet Address
-# fixed_point64 = "94f0e00a99685c74067f7541b171bf2a4bd7d859609adce17980a7c924b135c8"
+fixed_point64 = "0f6ac92851b1fb5c94662c1cc3848b4e677bbdbd37df473a7c2af401d6fde402"
 
 [dev-dependencies.MoveStdlib]
 git = "https://github.com/aptos-labs/aptos-core.git"
