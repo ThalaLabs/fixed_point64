@@ -29,7 +29,7 @@ module fixed_point64::fixed_point64 {
     /// When a is greater than b.
     const GREATER_THAN: u8 = 2;
 
-    const MAX_U128: u128 = 340282366920938463463374607431768211455;
+    const MAX_U128: u256 = 340282366920938463463374607431768211455;
 
     /// The resource to store `FixedPoint64`.
     struct FixedPoint64 has copy, store, drop {
@@ -95,7 +95,7 @@ module fixed_point64::fixed_point64 {
         FixedPoint64{ v: 0 }
     }
 
-    /// Multiply a `FixedPoint64` by a `u64`, returning a `FixedPoint64`
+    /// Multiply a `FixedPoint64` by a `u128`, returning a `FixedPoint64`
     public fun mul(fp: FixedPoint64, y: u128): FixedPoint64 {
         // vm would direct abort when overflow occured
         let v = fp.v * y;
@@ -103,7 +103,7 @@ module fixed_point64::fixed_point64 {
         FixedPoint64{ v }
     }
 
-    /// Divide a `FixedPoint64` by a `u64`, returning a `FixedPoint64`.
+    /// Divide a `FixedPoint64` by a `u128`, returning a `FixedPoint64`.
     public fun div(fp: FixedPoint64, y: u128): FixedPoint64 {
         assert!(y != 0, ERR_DIVIDE_BY_ZERO);
 
@@ -111,18 +111,18 @@ module fixed_point64::fixed_point64 {
         FixedPoint64{ v }
     }
 
-    /// Add a `FixedPoint64` and a `u64`, returning a `FixedPoint64`
+    /// Add a `FixedPoint64` and a `u128`, returning a `FixedPoint64`
     public fun add(fp: FixedPoint64, y: u128): FixedPoint64 {
         // vm would direct abort when overflow occured
-        let v = fp.v + (y << 64);
+        let v = ((fp.v as u256) + ((y as u256) << 64) as u128);
 
         FixedPoint64{ v }
     }
 
-    /// Subtract `FixedPoint64` by a `u64`, returning a `FixedPoint64`
+    /// Subtract `FixedPoint64` by a `u128`, returning a `FixedPoint64`
     public fun sub(fp: FixedPoint64, y: u128): FixedPoint64 {
         // vm would direct abort when underflow occured
-        let v = fp.v - (y << 64);
+        let v = ((fp.v as u256) - ((y as u256) << 64) as u128);
 
         FixedPoint64{ v }
     }
@@ -163,7 +163,7 @@ module fixed_point64::fixed_point64 {
         let scaled_result = result_u256 >> 64;
 
         // Ensure the result fits into u128
-        assert!(scaled_result <= (MAX_U128 as u256), ERR_MULTIPLY_RESULT_TOO_LARGE);
+        assert!(scaled_result <= MAX_U128, ERR_MULTIPLY_RESULT_TOO_LARGE);
 
         let v = (scaled_result as u128);
 
@@ -189,7 +189,7 @@ module fixed_point64::fixed_point64 {
         let result_u256 = scaled_a / b_u256;
 
         // Ensure the result fits into u128
-        assert!(result_u256 <= (MAX_U128 as u256), ERR_DIVIDE_RESULT_TOO_LARGE);
+        assert!(result_u256 <= MAX_U128, ERR_DIVIDE_RESULT_TOO_LARGE);
 
         let v = (result_u256 as u128);
 
@@ -200,8 +200,8 @@ module fixed_point64::fixed_point64 {
     public fun fraction(numerator: u128, denominator: u128): FixedPoint64 {
         assert!(denominator != 0, ERR_DIVIDE_BY_ZERO);
 
-        let r = numerator << 64;
-        let v = r / denominator;
+        let r = (numerator as u256) << 64;
+        let v = (r / (denominator as u256) as u128);
 
         FixedPoint64{ v }
     }

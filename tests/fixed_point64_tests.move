@@ -3,6 +3,7 @@ module fixed_point64::fixed_point64_tests {
     use fixed_point64::fixed_point64;
 
     const MAX_U64: u64 = 18446744073709551615; // 2^64 - 1
+    const MAX_U128: u128 = 340282366920938463463374607431768211455;
     const TWO_POWER_64: u128 = 18446744073709551616;
 
     #[test]
@@ -100,10 +101,24 @@ module fixed_point64::fixed_point64_tests {
     }
 
     #[test]
+    #[expected_failure]
+    fun test_fail_mul_large() {
+        let a = fixed_point64::encode(5);
+        fixed_point64::mul(a, MAX_U128);
+    }
+
+    #[test]
     fun test_fraction() {
         let a = fixed_point64::fraction(8, 2);
         assert!(fixed_point64::to_u128(a) == TWO_POWER_64 * 4, 0);
         assert!(fixed_point64::decode(a) == 4, 1);
+    }
+
+    #[test]
+    fun test_fraction_large() {
+        let a = fixed_point64::fraction(MAX_U128, MAX_U128 - 1);
+        assert!(fixed_point64::to_u128(a) == TWO_POWER_64, 0);
+        assert!(fixed_point64::decode(a) == 1, 1);
     }
 
     #[test]
@@ -147,8 +162,8 @@ module fixed_point64::fixed_point64_tests {
     #[test]
     #[expected_failure]
     fun test_fail_overflow_add() {
-        let a = fixed_point64::encode(MAX_U64);
-        fixed_point64::add(a, (MAX_U64 as u128));
+        let a = fixed_point64::encode(1);
+        fixed_point64::add(a, MAX_U128 - 100);
     }
 
     #[test]
@@ -157,6 +172,13 @@ module fixed_point64::fixed_point64_tests {
         let z = fixed_point64::sub(a, 2);
         assert!(fixed_point64::to_u128(z) == TWO_POWER_64, 0);
         assert!(fixed_point64::decode(z) == 1, 1);
+    }
+
+    #[test]
+    #[expected_failure]
+    fun test_fail_underflow_sub_large() {
+        let a = fixed_point64::encode(MAX_U64);
+        fixed_point64::sub(a, MAX_U128 - 100);
     }
     
     #[test]
