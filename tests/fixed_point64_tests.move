@@ -152,6 +152,14 @@ module fixed_point64::fixed_point64_tests {
     }
 
     #[test]
+    fun test_mul_div() {
+        let a = fixed_point64::encode(10);
+        let z = fixed_point64::mul_div(a, 2, 5);
+        assert!(fixed_point64::to_u128(z) == TWO_POWER_64 * 4, 0);
+        assert!(fixed_point64::decode(z) == 4, 1);
+    }
+
+    #[test]
     fun test_add() {
         let a = fixed_point64::encode(2);
         let z = fixed_point64::add(a, 3);
@@ -296,6 +304,16 @@ module fixed_point64::fixed_point64_tests {
     fun test_div_fp_fraction_precision() {
         let z = fixed_point64::fraction(7, 13); // 0.5384615384615384
         assert!(fixed_point64::to_u128(z) == 9932862193535912408, 0); // 0.53846153846
+    }
+
+    #[test]
+    fun test_mul_div_fp() {
+        let a = fixed_point64::encode(10);
+        let b = fixed_point64::encode(2);
+        let c = fixed_point64::encode(5);
+        let z = fixed_point64::mul_div_fp(a, b, c);
+        assert!(fixed_point64::to_u128(z) == TWO_POWER_64 * 4, 0);
+        assert!(fixed_point64::decode(z) == 4, 1);
     }
     
     #[test]
