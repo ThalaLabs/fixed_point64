@@ -111,6 +111,14 @@ module fixed_point64::fixed_point64 {
         FixedPoint64{ v }
     }
 
+    /// Multiply a `FixedPoint64` by a `u128` and then divide by another `u128`, returning a `u128`
+    public fun mul_div(fp: FixedPoint64, y: u128, z: u128): FixedPoint64 {
+        assert!(z != 0, ERR_DIVIDE_BY_ZERO);
+        let v = (((fp.v as u256) * (y as u256) / (z as u256)) as u128);
+
+        FixedPoint64{ v }
+    }
+
     /// Add a `FixedPoint64` and a `u128`, returning a `FixedPoint64`
     public fun add(fp: FixedPoint64, y: u128): FixedPoint64 {
         // vm would direct abort when overflow occured
@@ -187,6 +195,27 @@ module fixed_point64::fixed_point64 {
 
         // Perform the division with full precision
         let result_u256 = scaled_a / b_u256;
+
+        // Ensure the result fits into u128
+        assert!(result_u256 <= MAX_U128, ERR_DIVIDE_RESULT_TOO_LARGE);
+
+        let v = (result_u256 as u128);
+
+        FixedPoint64{ v }
+    }
+
+    /// Perform a mul_div of a `FixedPoint64` by a `FixedPoint64` and then divide by another `FixedPoint64`, returning a `FixedPoint64`.
+    public fun mul_div_fp(a: FixedPoint64, b: FixedPoint64, c: FixedPoint64): FixedPoint64 {
+        assert!(c.v != 0, ERR_DIVIDE_BY_ZERO);
+
+        // Cast to u256 to avoid overflow during multiplication
+        let a_u256 = (a.v as u256);
+        let b_u256 = (b.v as u256);
+        let c_u256 = (c.v as u256);
+
+        // Perform the mul_div with full precision
+        // No scale adjustment necessary: multiplication shifts right 64, division left 64, net 0 shift needed
+        let result_u256 = a_u256 * b_u256 / c_u256;
 
         // Ensure the result fits into u128
         assert!(result_u256 <= MAX_U128, ERR_DIVIDE_RESULT_TOO_LARGE);
