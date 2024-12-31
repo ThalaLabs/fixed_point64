@@ -3,6 +3,7 @@ module fixed_point64::fixed_point64_tests {
     use fixed_point64::fixed_point64;
 
     const MAX_U64: u64 = 18446744073709551615; // 2^64 - 1
+    const MAX_U128: u128 = 340282366920938463463374607431768211455;
     const TWO_POWER_64: u128 = 18446744073709551616;
 
     #[test]
@@ -100,10 +101,24 @@ module fixed_point64::fixed_point64_tests {
     }
 
     #[test]
+    #[expected_failure]
+    fun test_fail_mul_u128_large() {
+        let a = fixed_point64::encode(5);
+        fixed_point64::mul_u128(a, MAX_U128);
+    }
+
+    #[test]
     fun test_fraction() {
         let a = fixed_point64::fraction(8, 2);
         assert!(fixed_point64::to_u128(a) == TWO_POWER_64 * 4, 0);
         assert!(fixed_point64::decode(a) == 4, 1);
+    }
+
+    #[test]
+    fun test_fraction_large() {
+        let a = fixed_point64::fraction_u128(MAX_U128, MAX_U128 - 1);
+        assert!(fixed_point64::to_u128(a) == TWO_POWER_64, 0);
+        assert!(fixed_point64::decode(a) == 1, 1);
     }
 
     #[test]
@@ -143,12 +158,27 @@ module fixed_point64::fixed_point64_tests {
         assert!(fixed_point64::to_u128(z) == TWO_POWER_64 * 5, 0);
         assert!(fixed_point64::decode(z) == 5, 1);
     }
-    
+
+    #[test]
+    fun test_mul_div() {
+        let a = fixed_point64::encode(10);
+        let z = fixed_point64::mul_div_u128(a, 2, 5);
+        assert!(fixed_point64::to_u128(z) == TWO_POWER_64 * 4, 0);
+        assert!(fixed_point64::decode(z) == 4, 1);
+    }
+
     #[test]
     #[expected_failure]
     fun test_fail_overflow_add() {
         let a = fixed_point64::encode(MAX_U64);
         fixed_point64::add(a, MAX_U64);
+    }
+
+    #[test]
+    #[expected_failure]
+    fun test_fail_overflow_add_u128() {
+        let a = fixed_point64::encode(1);
+        fixed_point64::add_u128(a, MAX_U128 - 100);
     }
 
     #[test]
@@ -164,6 +194,13 @@ module fixed_point64::fixed_point64_tests {
     fun test_fail_underflow_sub() {
         let a = fixed_point64::encode(5);
         fixed_point64::sub(a, 10);
+    }
+
+    #[test]
+    #[expected_failure]
+    fun test_fail_underflow_sub_fp_large() {
+        let a = fixed_point64::encode(MAX_U64);
+        fixed_point64::sub_u128(a, MAX_U128 - 100);
     }
 
     #[test]
@@ -217,6 +254,24 @@ module fixed_point64::fixed_point64_tests {
         assert!(fixed_point64::to_u128(z) == TWO_POWER_64 * 5 / 2, 0);
         assert!(fixed_point64::decode(z) == 3, 1);
     }
+
+    #[test]
+    fun test_mul_fp_precision() {
+        let a = fixed_point64::from_u128(20724119864554512384); // 1.123456789
+        let b = fixed_point64::from_u128(55112494640199483392); // 2.987654321
+        let z = fixed_point64::mul_fp(a, b);
+        // expected: 3.35650053011
+        assert!(fixed_point64::to_u128(z) == 61916506262258222549, 0); // 3.35650053011
+    }
+
+    #[test]
+    fun test_mul_fp_precision_2() {
+        let a = fixed_point64::from_u128(409161529984780471035); // 22.180690985349592381
+        let b = fixed_point64::from_u128(1844582179910627); // 0.000099995000339357
+        let z = fixed_point64::mul_fp(a, b);
+        // expected: 0.002217958202607205
+        assert!(fixed_point64::to_u128(z) == 40914107329680144, 0); // 0.0022179582
+    }
     
     #[test]
     #[expected_failure]
@@ -243,9 +298,33 @@ module fixed_point64::fixed_point64_tests {
         assert!(fixed_point64::to_u128(z) == TWO_POWER_64 * 5, 0);
         assert!(fixed_point64::decode(z) == 5, 1);
     }
+
+    #[test]
+    fun test_div_fp_precision() {
+        let a = fixed_point64::from_u128(409161529984780471035);
+        let b = fixed_point64::from_u128(1844582179910627);
+        let z = fixed_point64::div_fp(a, b);
+        assert!(fixed_point64::to_u128(z) == 4091819876955756114341262, 0); // 221818
+    }
+
+    #[test]
+    fun test_div_fp_fraction_precision() {
+        let z = fixed_point64::fraction(7, 13); // 0.5384615384615384
+        assert!(fixed_point64::to_u128(z) == 9932862193535912408, 0); // 0.53846153846
+    }
+
+    #[test]
+    fun test_mul_div_fp() {
+        let a = fixed_point64::encode(10);
+        let b = fixed_point64::encode(2);
+        let c = fixed_point64::encode(5);
+        let z = fixed_point64::mul_div_fp(a, b, c);
+        assert!(fixed_point64::to_u128(z) == TWO_POWER_64 * 4, 0);
+        assert!(fixed_point64::decode(z) == 4, 1);
+    }
     
     #[test]
-    #[expected_failure(abort_code = fixed_point64::fixed_point64::ERR_DIVISOR_TOO_SMALL)]
+    #[expected_failure(abort_code = fixed_point64::fixed_point64::ERR_DIVIDE_RESULT_TOO_LARGE)]
     fun test_fail_divisor_too_small_div_fp() {
         let a = fixed_point64::encode(10);
         let b = fixed_point64::from_u128(1);
