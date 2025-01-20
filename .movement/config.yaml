@@ -1,0 +1,23 @@
+---
+profiles:
+  acc2:
+    network: Custom
+    private_key: "0xa1657a9ad28407369f65ec39c33930916b02343de0b1296169b91eef11b3e7af"
+    public_key: "0xd689c7c97058627f59b84634dabe96c5c243c30c6633ef333d64deb011d42410"
+    account: 5e78ad4c0d8e3cbad6f2efe8793cf00e6364399dc0b348919553457eec9ac342
+    rest_url: "https://aptos.testnet.bardock.movementlabs.xyz/v1"
+    faucet_url: "https://faucet.testnet.bardock.movementlabs.xyz/"
+  default:
+    network: Custom
+    private_key: "0xa1657a9ad28407369f65ec39c33930916b02343de0b1296169b91eef11b3e7af"
+    public_key: "0xd689c7c97058627f59b84634dabe96c5c243c30c6633ef333d64deb011d42410"
+    account: 5e78ad4c0d8e3cbad6f2efe8793cf00e6364399dc0b348919553457eec9ac342
+    rest_url: "https://aptos.testnet.bardock.movementlabs.xyz/v1"
+    faucet_url: "https://faucet.testnet.bardock.movementlabs.xyz/"
+  deployer:
+    network: Testnet
+    private_key: "0xba7c89a03369cec24bde98124549551ffbfea8d32edb916ca6af9c9f2d748651"
+    public_key: "0x3e6d261320d9539196dac2c3a9e9b8fe015176931d0cfa9da508c6c754509ee1"
+    account: c85b473561a5c8793d1bdbda0b0d456d582851127b9e63004553e0a5fed0bc85
+    rest_url: "https://fullnode.testnet.aptoslabs.com"
+    faucet_url: "https://faucet.testnet.aptoslabs.com"

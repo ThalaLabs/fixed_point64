@@ -10,7 +10,7 @@ fixed_point64 = "0x5e78ad4c0d8e3cbad6f2efe8793cf00e6364399dc0b348919553457eec9ac
 # fixed_point64 = "94f0e00a99685c74067f7541b171bf2a4bd7d859609adce17980a7c924b135c8"
 
 [dev-dependencies.MoveStdlib]
-git = "https://github.com/aptos-labs/aptos-core.git"
-rev = "mainnet"
+git = "https://github.com/movementlabsxyz/aptos-core.git"
+rev = "movement"
 subdir = "aptos-move/framework/move-stdlib"
 addr_subst = { std = "0x1" }
