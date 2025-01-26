@@ -3,9 +3,4 @@ name = "FixedPoint64"
 version = "1.0.0"
 
 [addresses]
-fixed_point64 = "4dcae85fc5559071906cd5c76b7420fcbb4b0a92f00ab40ffc394aadbbff5ee9"
-
-[dev-dependencies.MoveStdlib]
-git = "https://github.com/aptos-labs/aptos-framework.git"
-subdir = "move-stdlib"
-rev = "mainnet"
+fixed_point64 = "0x84A1C74DD12B1D7F07E5509550DF918BD5593100"
