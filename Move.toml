@@ -3,7 +3,7 @@ name = "FixedPoint64"
 version = "1.0.0"
 
 [addresses]
-fixed_point64 = "4dcae85fc5559071906cd5c76b7420fcbb4b0a92f00ab40ffc394aadbbff5ee9"
+fixed_point64 = "3420649a69d0845f49f591ba2aa6cf7ae223cab41c1de46dd15d854d047c3d64"
 
 [dependencies.AptosFramework]
 git = "https://github.com/movementlabsxyz/aptos-core.git"
