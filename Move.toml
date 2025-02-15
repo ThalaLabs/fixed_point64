@@ -3,9 +3,17 @@ name = "FixedPoint64"
 version = "1.0.0"
 
 [addresses]
-fixed_point64 = "3420649a69d0845f49f591ba2aa6cf7ae223cab41c1de46dd15d854d047c3d64"
+# movement account derive-resource-account-address --address  0x880fdc380c6b0e8548b37a3a96b2a1da5459580b2eeadd8565f5b5cddc87b78b --seed fixed_point64 --seed-encoding utf8
+# movement move create-resource-account-and-publish-package --address-name fixed_point64 --seed fixed_point64 --seed-encoding utf8 --included-artifacts none 
+fixed_point64 = "7197b4cfed050a724dd7aad8ddfaf835405f0aac66c699865c3140c61977c481"
+fixed_point64_deployer = "0x880fdc380c6b0e8548b37a3a96b2a1da5459580b2eeadd8565f5b5cddc87b78b"
 
 [dependencies.AptosFramework]
 git = "https://github.com/movementlabsxyz/aptos-core.git"
 rev = "movement"
 subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.MeridianManager]
+git = "https://github.com/ThalaLabs/thala-modules.git"
+rev = "meridian"
+subdir = "meridian_manager"
