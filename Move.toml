@@ -14,6 +14,5 @@ rev = "movement"
 subdir = "aptos-move/framework/aptos-framework"
 
 [dependencies.MeridianManager]
-git = "https://github.com/ThalaLabs/thala-modules.git"
-rev = "meridian"
-subdir = "meridian_manager"
+git = "https://github.com/ThalaLabs/manager-interface.git"
+rev = "movement"

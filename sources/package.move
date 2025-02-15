@@ -133,7 +133,7 @@ module fixed_point64::package {
         let _ = package_signer();
     }
 
-    #[test(account = @rate_limiter)]
+    #[test(account = @fixed_point64)]
     #[expected_failure(abort_code = ERR_PACKAGE_UNAUTHORIZED)]
     fun publish_package_unauthorized_err(account: &signer) acquires Package {
         // setup the manager & package resource
