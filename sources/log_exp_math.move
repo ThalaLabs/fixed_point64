@@ -29,7 +29,7 @@ module fixed_point64::log_exp_math {
     const EXP_1_OVER_8_RAW: u128 = 20902899511243624352;
     const EXP_1_OVER_16_RAW: u128 = 19636456851539679197;
 
-    const LOG_2_E_INV_RAW: u128 = 12786308645977587712; // 1.0 / log_2(e)
+    const LOG_2_E_INV_RAW: u128 = 12786308645202655659; // log_2(e) == ln(2)
 
     const ONE_PLUS_TEN_EXP_MINUS_9: u128 = 18446744092156295689; // fixed_point64::fraction(1000000001, 1000000000)
     const ONE_MINUS_TEN_EXP_MINUS_9: u128 = 18446744055262807542; // fixed_point64::fraction(999999999, 1000000000)
