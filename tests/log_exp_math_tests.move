@@ -58,8 +58,8 @@ module fixed_point64::log_exp_math_tests {
         let x = fixed_point64::fraction(2718281828459, 1000000000000);
         let (sign, result) = log_exp_math::ln(x);
         assert!(sign == 1, 0);
-        
-        assert!(fixed_point64::to_u128(result) == 18446744074827235266, 1); // approx 1.0
+
+        assert!(fixed_point64::to_u128(result) == 18446744073709244636, 1); // approx 1.0 (0.999999999999983358)
     }
 
     #[test]
@@ -67,8 +67,8 @@ module fixed_point64::log_exp_math_tests {
         let x = fixed_point64::fraction(1648721271, 1000000000);
         let (sign, result) = log_exp_math::ln(x);
         assert!(sign == 1, 0);
-        
-        assert!(fixed_point64::to_u128(result) == 9223372040768892103, 1); // approx 0.5
+
+        assert!(fixed_point64::to_u128(result) == 9223372040209896788, 1); // approx 0.5 (0.500000000181881)
     }
     
     #[test]
@@ -160,15 +160,15 @@ module fixed_point64::log_exp_math_tests {
         let result = log_exp_math::pow(x, y);
 
         // (1/3)^(2/3) = 0.48074985676
-        assert!(fixed_point64::to_u128(result) == 8868269570899127400, 1); // 0.48074985674
+        assert!(fixed_point64::to_u128(result) == 8868269571292777640, 1); // 0.48074985676
 
         let scale_up = fixed_point64::fraction(1000000001, 1000000000);
         let result = log_exp_math::pow_up(x, y);
-        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269570899127400), scale_up)), 1);
+        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269571292777640), scale_up)), 1);
 
         let result = log_exp_math::pow_down(x, y);
         let scale_down = fixed_point64::fraction(999999999, 1000000000);
-        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269570899127400), scale_down)), 1);
+        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269571292777640), scale_down)), 1);
     }
 
     #[test]
