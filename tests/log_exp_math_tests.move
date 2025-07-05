@@ -170,6 +170,26 @@ module fixed_point64::log_exp_math_tests {
     }
 
     #[test]
+    fun test_pow_highly_precise() {
+        // sqrt(279681681134)
+        let x = fixed_point64::encode(279681681134);
+        let y = fixed_point64::fraction(1, 2);
+        let result = log_exp_math::pow(x, y);
+
+        // sqrt(279681681134) = 528849.393621662385659139_70
+        assert!(fixed_point64::to_u128(result) == 9755549417675290558929646, 1); // 528849.393621662385659139_69
+
+        // sqrt(53680401408637341)
+        let x = fixed_point64::encode(53680401408637341);
+        let y = fixed_point64::fraction(1, 2);
+
+        let result = log_exp_math::pow(x, y);
+
+        // sqrt(53680401408637341) = 231690313.583967814957765608_209
+        assert!(fixed_point64::to_u128(result) == 4273931919040965914809974593, 1); // 231690313.583967814957765608_190
+    }
+
+    #[test]
     fun test_pow_large_number() {
         let max_u64_u128: u128 = 1 << 64 - 1;
         let max_u64: u64 = (max_u64_u128 as u64);
