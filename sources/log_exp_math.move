@@ -5,7 +5,9 @@ module fixed_point64::log_exp_math {
 
     /// When exponent is too large
     const ERR_EXPONENT_TOO_LARGE: u64 = 0;
-    
+    const ERR_LOG_EXP_MATH_DIVIDE_BY_ZERO: u64 = 1;
+
+    const ONE_HALF_RAW: u128 = 1 << 63;
     const ONE_RAW: u128 = 1 << 64;
     const TWO_RAW: u128 = 1 << 65;
     const TWO_POW_2_RAW: u128 = 1 << 66;
@@ -226,6 +228,12 @@ module fixed_point64::log_exp_math {
         } else if (fixed_point64::to_u128(y) == TWO_POW_2_RAW) {
             let x_squared = fixed_point64::mul_fp(x, x);
             (true, fixed_point64::mul_fp(x_squared, x_squared))
+        } else if (fixed_point64::to_u128(y) == ONE_HALF_RAW) {
+            let x_u256 = (fixed_point64::to_u128(x) as u256);
+            let x_scaled = x_u256 << 64;
+            let sqrt = sqrt(x_scaled);
+
+            (true, fixed_point64::from_u128((sqrt as u128)))
         } else {
             (false, fixed_point64::zero())
         }
@@ -237,5 +245,51 @@ module fixed_point64::log_exp_math {
         let (sign, ln_x) = ln(x);
         let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
         exp(sign, y_times_ln_x)
+    }
+
+    /// Returns square root of x, precisely floor(sqrt(x))
+    /// Adapted from math128: https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-stdlib/sources/math128.move#L143
+    public fun sqrt(x: u256): u256 {
+        if (x == 0) return 0;
+        // Note the plus 1 in the expression. Let n = floor_lg2(x) we have x in [2^n, 2^{n+1}) and thus the answer in
+        // the half-open interval [2^(n/2), 2^{(n+1)/2}). For even n we can write this as [2^(n/2), sqrt(2) 2^{n/2})
+        // for odd n [2^((n+1)/2)/sqrt(2), 2^((n+1)/2). For even n the left end point is integer for odd the right
+        // end point is integer. If we choose as our first approximation the integer end point we have as maximum
+        // relative error either (sqrt(2) - 1) or (1 - 1/sqrt(2)) both are smaller then 1/2.
+        let res = 1 << ((floor_log2(x) + 1) >> 1);
+        // We use standard newton-rhapson iteration to improve the initial approximation.
+        // The error term evolves as delta_i+1 = delta_i^2 / 2 (quadratic convergence).
+        // It turns out that after 5 iterations the delta is smaller than 2^-64 and thus below the treshold.
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        // We add one additional iteration for the u256 sqrt implementation to improve approximation
+        res = (res + x / res) >> 1;
+        min(res, x / res)
+    }
+
+    /// Returns floor(log2(x))
+    /// Adapted from math128: https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-stdlib/sources/math128.move#L81
+    public fun floor_log2(x: u256): u8 {
+        let res = 0;
+        assert!(x != 0, ERR_LOG_EXP_MATH_DIVIDE_BY_ZERO);
+        // Effectively the position of the most significant set bit
+        let n = 128;
+        while (n > 0) {
+            if (x >= (1 << n)) {
+                x = x >> n;
+                res = res + n;
+            };
+            n = n >> 1;
+        };
+        res
+    }
+
+    /// Return the smallest of two numbers.
+    /// Adapted from math128: https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-stdlib/sources/math128.move#L18
+    public fun min(a: u256, b: u256): u256 {
+        if (a < b) a else b
     }
 }
