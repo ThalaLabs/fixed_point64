@@ -6,6 +6,7 @@ module fixed_point64::log_exp_math {
     /// When exponent is too large
     const ERR_EXPONENT_TOO_LARGE: u64 = 0;
     const ERR_LOG_EXP_MATH_DIVIDE_BY_ZERO: u64 = 1;
+    const ERR_LOG_EXP_MATH_LOG_2_ZERO_UNBOUNDED: u64 = 2;
 
     const ONE_HALF_RAW: u128 = 1 << 63;
     const ONE_RAW: u128 = 1 << 64;
@@ -41,6 +42,7 @@ module fixed_point64::log_exp_math {
     // code reference: https://github.com/dmoulding/log2fix/blob/master/log2fix.c
     // algorithm: http://www.claysturner.com/dsp/BinaryLogarithm.pdf
     public fun log2(x: FixedPoint64): (u8, FixedPoint64) {
+        assert!(fixed_point64::gt(&x, &fixed_point64::zero()), ERR_LOG_EXP_MATH_LOG_2_ZERO_UNBOUNDED);
         let z = fixed_point64::to_u128(x);
         let y: u128 = 0;
         let y_negative: u128 = 0;

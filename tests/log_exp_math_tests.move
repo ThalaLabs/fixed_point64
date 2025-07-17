@@ -25,6 +25,14 @@ module fixed_point64::log_exp_math_tests {
     }
 
     #[test]
+    #[expected_failure(abort_code = log_exp_math::ERR_LOG_EXP_MATH_LOG_2_ZERO_UNBOUNDED)]
+    fun test_log2_zero() {
+        // If abort not present log2(0) will timeout
+        let x = fixed_point64::zero();
+        let (_, _) = log_exp_math::log2(x);
+    }
+
+    #[test]
     fun test_log2_sqrt_2() {
         let x = fixed_point64::fraction(1414213562, 1000000000);
         let (sign, result) = log_exp_math::log2(x);
