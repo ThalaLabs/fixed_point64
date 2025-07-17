@@ -27,10 +27,15 @@ module fixed_point64::log_exp_math {
     const EXP_8_RAW: u128 = 54988969081439155412736;
     const EXP_16_RAW: u128 = 163919806582506698591828152;
     const EXP_32_RAW: u128 = 1456609517792428406714055862390917;
+
+    // NOTE: We round **up** on fractional exponent computations due to lost precision
+    // in the taylor series expansion computations in the "exp" method below.
+    // A rough approximation that has yielded strong accuracy in testing has been to
+    // 'round up + add "1"' for every power of 2 below 1.0.
     const EXP_1_OVER_2_RAW: u128 = 30413539329486470296; // round up on fractionals due to trimming caused by taylor series expansion
-    const EXP_1_OVER_4_RAW: u128 = 23686088245777032823; // round up on fractionals due to trimming caused by taylor series expansion
-    const EXP_1_OVER_8_RAW: u128 = 20902899511243624349; // round up on fractionals due to trimming caused by taylor series expansion
-    const EXP_1_OVER_16_RAW: u128 = 19636456851539679190; // round up on fractionals due to trimming caused by taylor series expansion
+    const EXP_1_OVER_4_RAW: u128 = 23686088245777032824; // round up on fractionals + 1 due to trimming caused by taylor series expansion
+    const EXP_1_OVER_8_RAW: u128 = 20902899511243624351; // round up on fractionals + 2 due to trimming caused by taylor series expansion
+    const EXP_1_OVER_16_RAW: u128 = 19636456851539679193; // round up on fractionals + 3 due to trimming caused by taylor series expansion
 
     const LOG_2_E_INV_RAW: u128 = 12786308645202655659; // log_e_2 == ln(2)
 
