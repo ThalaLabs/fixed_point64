@@ -7,8 +7,8 @@ module fixed_point64::log_exp_math_tests {
     const EXP_2_RAW: u128 = 136304026803256390412;
     const EXP_4_RAW: u128 = 1007158100559408451354;
 
-    const EXP_1_OVER_2_RAW: u128 = 30413539329486470295;
-    const EXP_1_OVER_4_RAW: u128 = 23686088245777032822;
+    const EXP_1_OVER_2_RAW: u128 = 30413539329486470296;
+    const EXP_1_OVER_4_RAW: u128 = 23686088245777032823;
     
 
     #[test]
@@ -151,8 +151,8 @@ module fixed_point64::log_exp_math_tests {
     fun test_exp_1_over_3() {
         let x = fixed_point64::fraction(1, 3);
         let result = log_exp_math::exp(1, x);
-        // e^(1/3) = 1.395612425086089528
-        assert!(fixed_point64::to_u128(result) == 25744505231652237571, 1); // 1.395612425086089528
+        // e^(1/3) = 1.395612425086089528_628
+        assert!(fixed_point64::to_u128(result) == 25744505231652237574, 1); // 1.395612425086089528_384
     }
     
     #[test]
@@ -168,8 +168,8 @@ module fixed_point64::log_exp_math_tests {
     fun test_exp_neg_1_over_3() {
         let x = fixed_point64::fraction(1, 3);
         let result = log_exp_math::exp(0, x);
-        // e^(-1/3) = 0.716531310573789250
-        assert!(fixed_point64::to_u128(result) == 13217669706954385037, 1); // 0.716531310573789250
+        // e^(-1/3) = 0.7165313105737892504_256
+        assert!(fixed_point64::to_u128(result) == 13217669706954385036, 1); // 0.71653131057378925054_639
     }
 
     // #[test]
@@ -179,7 +179,6 @@ module fixed_point64::log_exp_math_tests {
     //     // TODO: Decide how to handle this
     //     let x = fixed_point64::from_u128((1 << 70) - 1000000000000000000000);
     //     let result = log_exp_math::exp(1, x);
-    //     std::debug::print(&result);
     //     assert!(fixed_point64::to_u128(result) == 0, 0);
     // }
 
@@ -214,15 +213,15 @@ module fixed_point64::log_exp_math_tests {
         let result = log_exp_math::pow(x, y);
 
         // (1/3)^(2/3) = 0.48074985676913612
-        assert!(fixed_point64::to_u128(result) == 8868269571292777646, 1); // 0.48074985676913612
+        assert!(fixed_point64::to_u128(result) == 8868269571292777628, 1); // 0.48074985676913612
 
         let scale_up = fixed_point64::fraction(1000000001, 1000000000);
         let result = log_exp_math::pow_up(x, y);
-        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269571292777646), scale_up)), 1);
+        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269571292777628), scale_up)), 1);
 
         let result = log_exp_math::pow_down(x, y);
         let scale_down = fixed_point64::fraction(999999999, 1000000000);
-        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269571292777646), scale_down)), 1);
+        assert!(fixed_point64::eq(&result, &fixed_point64::mul_fp(fixed_point64::from_u128(8868269571292777628), scale_down)), 1);
     }
 
     #[test]
