@@ -12,19 +12,6 @@ module fixed_point64::log_exp_math_tests {
     
 
     #[test]
-    fun test_exp_close_to_1() {
-        let x = fixed_point64::fraction(10000000001, 10000000000);
-        let (sign, result_1) = log_exp_math::ln(x);
-        assert!(sign == 1, 0);
-
-        let y = fixed_point64::fraction(10000000000, 10000000000);
-        let (sign, result_2) = log_exp_math::ln(y);
-        assert!(sign == 1, 0);
-
-        assert!(!fixed_point64::eq(&result_1, &result_2), 0);
-    }
-
-    #[test]
     #[expected_failure(abort_code = log_exp_math::ERR_LOG_EXP_MATH_LOG_2_ZERO_UNBOUNDED)]
     fun test_log2_zero() {
         // If abort not present log2(0) will timeout
@@ -67,7 +54,20 @@ module fixed_point64::log_exp_math_tests {
         
         assert!(fixed_point64::to_u128(result) == 26613026195688202108, 1);
     }
-    
+
+    #[test]
+    fun test_ln_close_to_1() {
+        let x = fixed_point64::fraction(10000000001, 10000000000);
+        let (sign, result_1) = log_exp_math::ln(x);
+        assert!(sign == 1, 0);
+
+        let y = fixed_point64::fraction(10000000000, 10000000000);
+        let (sign, result_2) = log_exp_math::ln(y);
+        assert!(sign == 1, 0);
+
+        assert!(!fixed_point64::eq(&result_1, &result_2), 0);
+    }
+
     #[test]
     fun test_ln_e() {
         let x = fixed_point64::fraction(2718281828459, 1000000000000);
@@ -84,6 +84,26 @@ module fixed_point64::log_exp_math_tests {
         assert!(sign == 1, 0);
 
         assert!(fixed_point64::to_u128(result) == 9223372040209896788, 1); // approx 0.5 (0.500000000181881)
+    }
+
+    #[test]
+    fun test_ln_very_small() {
+        // ln(1/2^64) = -44.361419555836499_802
+        let x = fixed_point64::from_u128(1);
+        let (sign, result) = log_exp_math::ln(x);
+        assert!(sign == 0, 0);
+
+        // -44.361419555836499_799
+        assert!(fixed_point64::to_u128(result) == 818323753292969962176, 1);
+    }
+
+    #[test]
+    fun test_ln_one_plus_eps() {
+        let x = fixed_point64::fraction(1000000001, 1000000000); // 1 + 1e-9
+        let (_, result) = log_exp_math::ln(x);
+        // ln(1 + 1e-9) = 0.000000000999999999_5
+        // 0.000000000999999999_2
+        assert!(fixed_point64::to_u128(result) == 18446744060, 1);
     }
     
     #[test]
@@ -151,6 +171,34 @@ module fixed_point64::log_exp_math_tests {
         // e^(-1/3) = 0.716531310573789250
         assert!(fixed_point64::to_u128(result) == 13217669706954385037, 1); // 0.716531310573789250
     }
+
+    // #[test]
+    // fun test_exp_max_safe() {
+    //     // NOTE: "exp" asserts that x < TWO_POW_6_RAW
+    //     // - In actuality, exp begins to fail when x >= TWO_POW_RAW_6 - 100000000000000000000
+    //     // TODO: Decide how to handle this
+    //     let x = fixed_point64::from_u128((1 << 70) - 1000000000000000000000);
+    //     let result = log_exp_math::exp(1, x);
+    //     std::debug::print(&result);
+    //     assert!(fixed_point64::to_u128(result) == 0, 0);
+    // }
+
+    #[test]
+    fun test_exp_ln_inverse() {
+        // e^2 should be: 136304026803256390412
+        // with precision limitations, e^2: 136304026803256390408
+        let e_squared = fixed_point64::mul_fp(fixed_point64::from_u128(EXP_1_RAW), fixed_point64::from_u128(EXP_1_RAW));
+        assert!(fixed_point64::to_u128(e_squared) == 136304026803256390408, 0);
+
+        // ln(e^2) should be 2
+        // with precision limitations, ln(e^2) = 1.99999999999999999996
+        let (sign, ln_e2) = log_exp_math::ln(e_squared);
+
+        // e^(ln(e^2)) should be e^2
+        // with precision limitations, e^(ln(e^2)) is slightly lower
+        let result = log_exp_math::exp(sign, ln_e2);
+        assert!(fixed_point64::to_u128(e_squared) - fixed_point64::to_u128(result) < 10000, 0); // error of 0.00000000000005%
+    }
     
     #[test]
     #[expected_failure(abort_code = log_exp_math::ERR_EXPONENT_TOO_LARGE)]
@@ -178,7 +226,51 @@ module fixed_point64::log_exp_math_tests {
     }
 
     #[test]
-    fun test_pow_highly_precise() {
+    fun test_pow_large_number() {
+        let max_u64_u128: u128 = 1 << 64 - 1;
+        let max_u64: u64 = (max_u64_u128 as u64);
+        let max_u64_fp = fixed_point64::encode(max_u64);
+
+        // actual value of (MAX_U64 ^ (1/8)) ^ 8 is MAX_U64
+        // test pow_up and pow_down are working properly
+        let a = fixed_point64::fraction(1, 8);
+        let b = fixed_point64::encode(8);
+        let result_up = log_exp_math::pow_up(log_exp_math::pow_up(max_u64_fp, a), b);
+        let result_down = log_exp_math::pow_down(log_exp_math::pow_down(max_u64_fp, a), b);
+
+        assert!(fixed_point64::gte(&result_up, &max_u64_fp), 1);
+        assert!(fixed_point64::lte(&result_down, &max_u64_fp), 1);
+    }
+
+    #[test]
+    fun test_pow_zero_exp() {
+        // All numbers to the power of 0 == 1
+        let one = fixed_point64::one();
+        assert!(fixed_point64::eq(&log_exp_math::pow(fixed_point64::zero(), fixed_point64::zero()), &one), 1);
+        assert!(fixed_point64::eq(&log_exp_math::pow(fixed_point64::encode(100000), fixed_point64::zero()), &one), 1);
+    }
+
+    #[test]
+    fun test_pow_zero_base() {
+        let result = log_exp_math::pow(fixed_point64::zero(), fixed_point64::fraction(1, 2));
+        assert!(fixed_point64::eq(&result, &fixed_point64::zero()), 1);
+    }
+
+    #[test]
+    fun test_pow_bounds() {
+        let x = fixed_point64::fraction(123456789, 100000000);
+        let y = fixed_point64::fraction(987654321, 1000000000);
+
+        let p_down = log_exp_math::pow_down(x, y);
+        let p = log_exp_math::pow(x, y);
+        let p_up = log_exp_math::pow_up(x, y);
+
+        assert!(fixed_point64::lte(&p_down, &p), 1);
+        assert!(fixed_point64::lte(&p, &p_up), 1);
+    }
+
+    #[test]
+    fun test_pow_sqrt_highly_precise() {
         // sqrt(279681681134)
         let x = fixed_point64::encode(279681681134);
         let y = fixed_point64::fraction(1, 2);
@@ -198,19 +290,9 @@ module fixed_point64::log_exp_math_tests {
     }
 
     #[test]
-    fun test_pow_large_number() {
-        let max_u64_u128: u128 = 1 << 64 - 1;
-        let max_u64: u64 = (max_u64_u128 as u64);
-        let max_u64_fp = fixed_point64::encode(max_u64);
-
-        // actual value of (MAX_U64 ^ (1/8)) ^ 8 is MAX_U64
-        // test pow_up and pow_down are working properly
-        let a = fixed_point64::fraction(1, 8);
-        let b = fixed_point64::encode(8);
-        let result_up = log_exp_math::pow_up(log_exp_math::pow_up(max_u64_fp, a), b);
-        let result_down = log_exp_math::pow_down(log_exp_math::pow_down(max_u64_fp, a), b);
-
-        assert!(fixed_point64::gte(&result_up, &max_u64_fp), 1);
-        assert!(fixed_point64::lte(&result_down, &max_u64_fp), 1);
+    fun test_pow_sqrt() {
+        let one_u256 = (1u256 << 128);
+        let result = log_exp_math::sqrt(one_u256);
+        assert!(result == 1 << 64, 0);
     }
 }
