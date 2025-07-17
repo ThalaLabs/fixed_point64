@@ -27,10 +27,10 @@ module fixed_point64::log_exp_math {
     const EXP_8_RAW: u128 = 54988969081439155412736;
     const EXP_16_RAW: u128 = 163919806582506698591828152;
     const EXP_32_RAW: u128 = 1456609517792428406714055862390917;
-    const EXP_1_OVER_2_RAW: u128 = 30413539329486470295;
-    const EXP_1_OVER_4_RAW: u128 = 23686088245777032822;
-    const EXP_1_OVER_8_RAW: u128 = 20902899511243624348;
-    const EXP_1_OVER_16_RAW: u128 = 19636456851539679189;
+    const EXP_1_OVER_2_RAW: u128 = 30413539329486470296; // round up on fractionals due to trimming caused by taylor series expansion
+    const EXP_1_OVER_4_RAW: u128 = 23686088245777032823; // round up on fractionals due to trimming caused by taylor series expansion
+    const EXP_1_OVER_8_RAW: u128 = 20902899511243624349; // round up on fractionals due to trimming caused by taylor series expansion
+    const EXP_1_OVER_16_RAW: u128 = 19636456851539679190; // round up on fractionals due to trimming caused by taylor series expansion
 
     const LOG_2_E_INV_RAW: u128 = 12786308645202655659; // log_e_2 == ln(2)
 
@@ -98,7 +98,7 @@ module fixed_point64::log_exp_math {
             result = fixed_point64::from_u128(EXP_1_RAW);
         } else {
             result = fixed_point64::one();
-            
+
             if (fixed_point64::to_u128(x) >= TWO_POW_5_RAW) {
                 x = fixed_point64::sub_fp(x, fixed_point64::from_u128(TWO_POW_5_RAW));
                 result = fixed_point64::mul_fp(result, fixed_point64::from_u128(EXP_32_RAW));
@@ -168,6 +168,12 @@ module fixed_point64::log_exp_math {
                 series_sum = fixed_point64::add_fp(series_sum, term);
 
                 term = fixed_point64::div(fixed_point64::mul_fp(term, x), 8);
+                series_sum = fixed_point64::add_fp(series_sum, term);
+
+                term = fixed_point64::div(fixed_point64::mul_fp(term, x), 9);
+                series_sum = fixed_point64::add_fp(series_sum, term);
+
+                term = fixed_point64::div(fixed_point64::mul_fp(term, x), 10);
                 series_sum = fixed_point64::add_fp(series_sum, term);
 
                 result = fixed_point64::mul_fp(result, series_sum);
