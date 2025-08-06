@@ -5,7 +5,10 @@ module fixed_point64::log_exp_math {
 
     /// When exponent is too large
     const ERR_EXPONENT_TOO_LARGE: u64 = 0;
-    
+    const ERR_LOG_EXP_MATH_DIVIDE_BY_ZERO: u64 = 1;
+    const ERR_LOG_EXP_MATH_LOG_2_ZERO_UNBOUNDED: u64 = 2;
+
+    const ONE_HALF_RAW: u128 = 1 << 63;
     const ONE_RAW: u128 = 1 << 64;
     const TWO_RAW: u128 = 1 << 65;
     const TWO_POW_2_RAW: u128 = 1 << 66;
@@ -18,18 +21,23 @@ module fixed_point64::log_exp_math {
     const TWO_POW_NEG_3_RAW: u128 = 1 << 61;
     const TWO_POW_NEG_4_RAW: u128 = 1 << 60;
 
-    const EXP_1_RAW: u128 = 50143449209799256676;
-    const EXP_2_RAW: u128 = 136304026803256390374;
-    const EXP_4_RAW: u128 = 1007158100559408450779;
-    const EXP_8_RAW: u128 = 54988969081439155349854;
-    const EXP_16_RAW: u128 = 163919806582506698216928336;
-    const EXP_32_RAW: u128 = 1456609517792428400051253459476158;
-    const EXP_1_OVER_2_RAW: u128 = 30413539329486470297;
-    const EXP_1_OVER_4_RAW: u128 = 23686088245777032821;
-    const EXP_1_OVER_8_RAW: u128 = 20902899511243624352;
-    const EXP_1_OVER_16_RAW: u128 = 19636456851539679197;
+    const EXP_1_RAW: u128 = 50143449209799256682;
+    const EXP_2_RAW: u128 = 136304026803256390412;
+    const EXP_4_RAW: u128 = 1007158100559408451354;
+    const EXP_8_RAW: u128 = 54988969081439155412736;
+    const EXP_16_RAW: u128 = 163919806582506698591828152;
+    const EXP_32_RAW: u128 = 1456609517792428406714055862390917;
 
-    const LOG_2_E_INV_RAW: u128 = 12786308645977587712; // 1.0 / log_2(e)
+    // NOTE: We round **up** on fractional exponent computations due to lost precision
+    // in the taylor series expansion computations in the "exp" method below.
+    // A rough approximation that has yielded strong accuracy in testing has been to
+    // 'round up + add "1"' for every power of 2 below 1.0.
+    const EXP_1_OVER_2_RAW: u128 = 30413539329486470296; // round up on fractionals due to trimming caused by taylor series expansion
+    const EXP_1_OVER_4_RAW: u128 = 23686088245777032824; // round up on fractionals + 1 due to trimming caused by taylor series expansion
+    const EXP_1_OVER_8_RAW: u128 = 20902899511243624351; // round up on fractionals + 2 due to trimming caused by taylor series expansion
+    const EXP_1_OVER_16_RAW: u128 = 19636456851539679193; // round up on fractionals + 3 due to trimming caused by taylor series expansion
+
+    const LOG_2_E_INV_RAW: u128 = 12786308645202655659; // log_e_2 == ln(2)
 
     const ONE_PLUS_TEN_EXP_MINUS_9: u128 = 18446744092156295689; // fixed_point64::fraction(1000000001, 1000000000)
     const ONE_MINUS_TEN_EXP_MINUS_9: u128 = 18446744055262807542; // fixed_point64::fraction(999999999, 1000000000)
@@ -39,6 +47,7 @@ module fixed_point64::log_exp_math {
     // code reference: https://github.com/dmoulding/log2fix/blob/master/log2fix.c
     // algorithm: http://www.claysturner.com/dsp/BinaryLogarithm.pdf
     public fun log2(x: FixedPoint64): (u8, FixedPoint64) {
+        assert!(fixed_point64::gt(&x, &fixed_point64::zero()), ERR_LOG_EXP_MATH_LOG_2_ZERO_UNBOUNDED);
         let z = fixed_point64::to_u128(x);
         let y: u128 = 0;
         let y_negative: u128 = 0;
@@ -94,7 +103,7 @@ module fixed_point64::log_exp_math {
             result = fixed_point64::from_u128(EXP_1_RAW);
         } else {
             result = fixed_point64::one();
-            
+
             if (fixed_point64::to_u128(x) >= TWO_POW_5_RAW) {
                 x = fixed_point64::sub_fp(x, fixed_point64::from_u128(TWO_POW_5_RAW));
                 result = fixed_point64::mul_fp(result, fixed_point64::from_u128(EXP_32_RAW));
@@ -166,6 +175,12 @@ module fixed_point64::log_exp_math {
                 term = fixed_point64::div(fixed_point64::mul_fp(term, x), 8);
                 series_sum = fixed_point64::add_fp(series_sum, term);
 
+                term = fixed_point64::div(fixed_point64::mul_fp(term, x), 9);
+                series_sum = fixed_point64::add_fp(series_sum, term);
+
+                term = fixed_point64::div(fixed_point64::mul_fp(term, x), 10);
+                series_sum = fixed_point64::add_fp(series_sum, term);
+
                 result = fixed_point64::mul_fp(result, series_sum);
             };
         };
@@ -226,6 +241,12 @@ module fixed_point64::log_exp_math {
         } else if (fixed_point64::to_u128(y) == TWO_POW_2_RAW) {
             let x_squared = fixed_point64::mul_fp(x, x);
             (true, fixed_point64::mul_fp(x_squared, x_squared))
+        } else if (fixed_point64::to_u128(y) == ONE_HALF_RAW) {
+            let x_u256 = (fixed_point64::to_u128(x) as u256);
+            let x_scaled = x_u256 << 64;
+            let sqrt = sqrt(x_scaled);
+
+            (true, fixed_point64::from_u128((sqrt as u128)))
         } else {
             (false, fixed_point64::zero())
         }
@@ -237,5 +258,51 @@ module fixed_point64::log_exp_math {
         let (sign, ln_x) = ln(x);
         let y_times_ln_x = fixed_point64::mul_fp(y, ln_x);
         exp(sign, y_times_ln_x)
+    }
+
+    /// Returns square root of x, precisely floor(sqrt(x))
+    /// Adapted from math128: https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-stdlib/sources/math128.move#L143
+    public fun sqrt(x: u256): u256 {
+        if (x == 0) return 0;
+        // Note the plus 1 in the expression. Let n = floor_lg2(x) we have x in [2^n, 2^{n+1}) and thus the answer in
+        // the half-open interval [2^(n/2), 2^{(n+1)/2}). For even n we can write this as [2^(n/2), sqrt(2) 2^{n/2})
+        // for odd n [2^((n+1)/2)/sqrt(2), 2^((n+1)/2). For even n the left end point is integer for odd the right
+        // end point is integer. If we choose as our first approximation the integer end point we have as maximum
+        // relative error either (sqrt(2) - 1) or (1 - 1/sqrt(2)) both are smaller then 1/2.
+        let res = 1 << ((floor_log2(x) + 1) >> 1);
+        // We use standard newton-rhapson iteration to improve the initial approximation.
+        // The error term evolves as delta_i+1 = delta_i^2 / 2 (quadratic convergence).
+        // It turns out that after 5 iterations the delta is smaller than 2^-64 and thus below the treshold.
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        res = (res + x / res) >> 1;
+        // We add one additional iteration for the u256 sqrt implementation to improve approximation
+        res = (res + x / res) >> 1;
+        min(res, x / res)
+    }
+
+    /// Returns floor(log2(x))
+    /// Adapted from math128: https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-stdlib/sources/math128.move#L81
+    public fun floor_log2(x: u256): u8 {
+        let res = 0;
+        assert!(x != 0, ERR_LOG_EXP_MATH_DIVIDE_BY_ZERO);
+        // Effectively the position of the most significant set bit
+        let n = 128;
+        while (n > 0) {
+            if (x >= (1 << n)) {
+                x = x >> n;
+                res = res + n;
+            };
+            n = n >> 1;
+        };
+        res
+    }
+
+    /// Return the smallest of two numbers.
+    /// Adapted from math128: https://github.com/aptos-labs/aptos-core/blob/main/aptos-move/framework/aptos-stdlib/sources/math128.move#L18
+    public fun min(a: u256, b: u256): u256 {
+        if (a < b) a else b
     }
 }
