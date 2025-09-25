@@ -74,6 +74,11 @@ module fixed_point64::log_exp_math_tests {
         let (sign, result) = log_exp_math::ln(x);
         assert!(sign == 1, 0);
 
+        // expect: 0.999999999999983358_8409362560458290249227
+        // previous: 0.999999999999983358_580854519992442419606959447
+        // new: 0.999999999999983358_689274737240992863007704727
+        // new better? yes
+        std::debug::print(&fixed_point64::to_u128(result)); // 18446744073709244638
         assert!(fixed_point64::to_u128(result) == 18446744073709244636, 1); // approx 1.0 (0.999999999999983358)
     }
 
