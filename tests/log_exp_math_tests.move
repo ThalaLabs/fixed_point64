@@ -24,8 +24,8 @@ module fixed_point64::log_exp_math_tests {
         let x = fixed_point64::fraction(1414213562, 1000000000);
         let (sign, result) = log_exp_math::log2(x);
         assert!(sign == 1, 0);
-        
-        assert!(fixed_point64::to_u128(result) == 9223372029833779420, 1); // approx 0.5
+
+        assert!(fixed_point64::to_u128(result) == 9223372029833779422, 1); // approx 0.5
     }
     
     #[test]
@@ -43,7 +43,7 @@ module fixed_point64::log_exp_math_tests {
         let (sign, result) = log_exp_math::log2(x);
         assert!(sign == 0, 0);
         
-        assert!(fixed_point64::to_u128(result) == 9223372043875772196, 1); // approx 0.5
+        assert!(fixed_point64::to_u128(result) == 9223372043875772194, 1); // approx 0.5
     }
     
     #[test]
@@ -51,8 +51,8 @@ module fixed_point64::log_exp_math_tests {
         let x = fixed_point64::fraction(2718281828459, 1000000000000);
         let (sign, result) = log_exp_math::log2(x);
         assert!(sign == 1, 0);
-        
-        assert!(fixed_point64::to_u128(result) == 26613026195688202108, 1);
+
+        assert!(fixed_point64::to_u128(result) == 26613026195688202110, 1);
     }
 
     #[test]
@@ -74,7 +74,7 @@ module fixed_point64::log_exp_math_tests {
         let (sign, result) = log_exp_math::ln(x);
         assert!(sign == 1, 0);
 
-        assert!(fixed_point64::to_u128(result) == 18446744073709244636, 1); // approx 1.0 (0.999999999999983358)
+        assert!(fixed_point64::to_u128(result) == 18446744073709244638, 1); // approx 1.0 (0.999999999999983358)
     }
 
     #[test]
@@ -102,8 +102,8 @@ module fixed_point64::log_exp_math_tests {
         let x = fixed_point64::fraction(1000000001, 1000000000); // 1 + 1e-9
         let (_, result) = log_exp_math::ln(x);
         // ln(1 + 1e-9) = 0.000000000999999999_5
-        // 0.000000000999999999_2
-        assert!(fixed_point64::to_u128(result) == 18446744060, 1);
+        // 0.000000000999999999_36
+        assert!(fixed_point64::to_u128(result) == 18446744062, 1);
     }
     
     #[test]

@@ -48,7 +48,7 @@ module fixed_point64::log_exp_math {
     // algorithm: http://www.claysturner.com/dsp/BinaryLogarithm.pdf
     public fun log2(x: FixedPoint64): (u8, FixedPoint64) {
         assert!(fixed_point64::gt(&x, &fixed_point64::zero()), ERR_LOG_EXP_MATH_LOG_2_ZERO_UNBOUNDED);
-        let z = fixed_point64::to_u128(x);
+        let z = (fixed_point64::to_u128(x) as u256);
         let y: u128 = 0;
         let y_negative: u128 = 0;
         let b: u128 = 1 << (PRECISION - 1);
@@ -56,23 +56,23 @@ module fixed_point64::log_exp_math {
         let sign: u8 = 1;
 
         // normalize input to the range [1,2)
-        while (z >= TWO_RAW) {
+        while (z >= (TWO_RAW as u256)) {
             z = z >> 1;
             y = y + ONE_RAW;
         };
 
-        while (z < ONE_RAW) {
+        while (z < (ONE_RAW as u256)) {
             sign = 0;
             z = z << 1;
             y_negative = y_negative + ONE_RAW;
         };
 
-        while (i < 62) {
+        while (i < 64) {
             // to calculate (z*z) >> 64, use the fact that z is in the range [1,2)
             // (z >> 1) can fill in lower 64 bits of u128
             // therefore, (z >> 1) * (z >> 1) will not overflow
-            z = ((z >> 1) * (z >> 1)) >> 62;
-            if (z >= TWO_RAW) { 
+            z = (z * z) >> 64;
+            if (z >= (TWO_RAW as u256)) {
                 z = z >> 1;
                 y = y + b;
             };
